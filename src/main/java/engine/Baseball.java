@@ -5,40 +5,84 @@ import engine.model.Numbers;
 import io.Input;
 import io.Output;
 import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 
-@AllArgsConstructor
+@NoArgsConstructor
 public class Baseball implements Runnable{
-    private final int COUNT_OF_NUMBERS = 3;
-
+    private int COUNT_OF_NUMBERS;
+    private int count; // 횟수 제한
+    List<String> diffList = Arrays.asList("1", "2", "3");
     NumberGenerator generator;
     Input input;
     Output output;
 
+    public Baseball(NumberGenerator generator, Input input, Output output) {
+        this.generator = generator;
+        this.input = input;
+        this.output = output;
+    }
+
     @Override
     public void run() {
+
+        setDifficulty();
+
         Numbers answer = generator.generate(COUNT_OF_NUMBERS);
+        count = 10;
 
-        while(true){
-            String userInput = input.input("guess what");
-            Optional<Numbers> inputNumbers = parse(userInput);
+        while(count > 0){
+            String userInput = input.input(COUNT_OF_NUMBERS+"자리 숫자를 맞춰보세요~");
+            Optional<Numbers> inputNums = parse(userInput);
 
-                if (inputNumbers.isEmpty()) {
-                    output.inputError();
-                    continue;
-                }
+            if (notValidateInput(inputNums)) continue;
+            count --;
 
-                BallCount bc = ballCount(answer, inputNumbers.get());
-                output.ballCount(bc);
+            BallCount bc = ballCount(answer, inputNums.get());
+            output.ballCount(bc);
 
-                if(bc.getStrike() == COUNT_OF_NUMBERS){
-                    output.correct();
-                break;
+            if(bc.getStrike() == COUNT_OF_NUMBERS){
+                output.correct();
+                return;
             }
 
+            output.countChance(count);
+        }
+        output.printAnswer(answer);
+    }
+
+    private boolean notValidateInput(Optional<Numbers> inputNumbers) {
+        if (inputNumbers.isEmpty()) {
+            output.inputError();
+            return true;
+        }
+        return false;
+    }
+
+    private void setDifficulty() {
+        while(true){
+            String difficulty = input.setDifficulty("1~3 중 원하시는 난이도를 입력해주세요");
+
+            if(diffList.contains(difficulty)){
+                int selectDifficulty = Integer.parseInt(difficulty);
+                this.COUNT_OF_NUMBERS = selectDifficulty + 2;
+                break;
+            }
+        }
+    }
+
+    private void parseDifficulty(String diff) {
+        List<String> diffList = Arrays.asList("1", "2", "3");
+
+        if(diffList.contains(diff)){
+            int selectDifficulty = Integer.parseInt(diff);
+            this.COUNT_OF_NUMBERS = selectDifficulty + 2;
         }
     }
 

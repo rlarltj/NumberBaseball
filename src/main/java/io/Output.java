@@ -1,6 +1,7 @@
 package io;
 
 import engine.model.BallCount;
+import engine.model.Numbers;
 
 public interface Output {
     void ballCount(BallCount bc);
@@ -8,4 +9,8 @@ public interface Output {
     void inputError();
 
     void correct();
+
+    void countChance(int count);
+
+    void printAnswer(Numbers answer);
 }
